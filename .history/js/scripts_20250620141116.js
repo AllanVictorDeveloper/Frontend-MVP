@@ -81,10 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const row = despesasTableBody.insertRow();
       row.insertCell(0).textContent = despesa.id;
       row.insertCell(1).textContent = despesa.nome_despesa;
-      row.insertCell(2).textContent = new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      }).format(despesa.valor);
+      row.insertCell(2).textContent = `R$ ${despesa.valor.toFixed(2)}`;
       row.insertCell(3).textContent = despesa.data_despesa
         ? new Date(despesa.data_despesa).toLocaleDateString("pt-BR")
         : "N/A";

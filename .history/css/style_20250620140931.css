@@ -199,7 +199,7 @@ table {
 
 table thead th {
     background-color: #ecf0f1;
-    text-align: center;
+    text-align: left;
     padding: 12px 15px;
     border-bottom: 1px solid #ddd;
     color: #555;

@@ -199,7 +199,7 @@ table {
 
 table thead th {
     background-color: #ecf0f1;
-    text-align: center;
+    text-align: left;
     padding: 12px 15px;
     border-bottom: 1px solid #ddd;
     color: #555;
@@ -209,7 +209,6 @@ table tbody td {
     padding: 12px 15px;
     border-bottom: 1px solid #eee;
     vertical-align: middle;
-    text-align: center;
 }
 
 table tbody td button {
