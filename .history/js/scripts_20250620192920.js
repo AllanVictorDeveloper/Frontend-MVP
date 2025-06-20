@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Elementos do DOM - Globalmente acessíveis
   const despesasTableBody = document.getElementById("despesas-table-body");
-  const categoriaSelect = document.getElementById("categoria_id");
+  const categoriaSelect = document.getElementById("categoria_id"); // Para o form de adicionar
   const addDespesaBtn = document.getElementById("add-despesa-btn");
   const addDespesaFormContainer = document.getElementById(
     "add-despesa-form-container"
@@ -25,8 +25,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const editExpenseValue = document.getElementById("edit-expense-value");
   const editExpenseDate = document.getElementById("edit-expense-date");
   const editExpenseDueDate = document.getElementById("edit-expense-due-date");
-  const editExpenseCategory = document.getElementById("edit-expense-category");
+  const editExpenseCategory = document.getElementById("edit-expense-category"); // Select de categoria do modal
 
+  // --- Funções para manipulação do DOM e Feedback ao Usuário ---
 
   function showLoading() {
     despesasTableBody.innerHTML =
@@ -120,6 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Erro ao buscar despesas:", error);
       showError(error.message);
     }
+    // Não precisamos de hideLoading no finally aqui, renderDespesasTable já sobrescreve
   }
 
   // Função para renderizar a tabela de despesas

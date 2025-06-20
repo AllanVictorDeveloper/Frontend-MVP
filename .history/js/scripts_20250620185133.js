@@ -1,9 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const API_BASE_URL = "http://127.0.0.1:5000"; // URL base da API
+  const API_BASE_URL = "http://127.0.0.1:5000"; // Sua URL base da API
 
   // Elementos do DOM - Globalmente acessíveis
   const despesasTableBody = document.getElementById("despesas-table-body");
-  const categoriaSelect = document.getElementById("categoria_id");
+  const categoriaSelect = document.getElementById("categoria_id"); // Para o form de adicionar
   const addDespesaBtn = document.getElementById("add-despesa-btn");
   const addDespesaFormContainer = document.getElementById(
     "add-despesa-form-container"
@@ -25,8 +25,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const editExpenseValue = document.getElementById("edit-expense-value");
   const editExpenseDate = document.getElementById("edit-expense-date");
   const editExpenseDueDate = document.getElementById("edit-expense-due-date");
-  const editExpenseCategory = document.getElementById("edit-expense-category");
+  const editExpenseCategory = document.getElementById("edit-expense-category"); // Select de categoria do modal
 
+  // --- Funções para manipulação do DOM e Feedback ao Usuário ---
 
   function showLoading() {
     despesasTableBody.innerHTML =
@@ -71,10 +72,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Função para preencher o select de categorias NO MODAL DE EDIÇÃO
-  async function populateCategoriesForModal(categoria) {
+  async function populateCategoriesForModal(selectedCategoryId = null) {
     editExpenseCategory.innerHTML = '<option value="">Carregando...</option>';
     try {
-      const response = await fetch(`${API_BASE_URL}/buscar_categorias`);
+      const response = await fetch(`${API_BASE_URL}/buscar_categorias`); // Use sua API_BASE_URL aqui
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
@@ -82,16 +83,16 @@ document.addEventListener("DOMContentLoaded", () => {
         );
       }
       const data = await response.json();
-      const categories = data.categorias;
+      const categories = data.categorias; // Ajuste para o formato da sua resposta da API
 
       editExpenseCategory.innerHTML =
-        '<option value="">Selecione uma categoria</option>';
+        '<option value="">Selecione uma categoria</option>'; // Opção padrão
       categories.forEach((category) => {
         const option = document.createElement("option");
         option.value = category.id;
         option.textContent = category.nome;
-        if (category.nome === categoria.nome) {
-          option.selected = true;
+        if (selectedCategoryId && category.id === selectedCategoryId) {
+          option.selected = true; // Pré-seleciona a categoria atual da despesa
         }
         editExpenseCategory.appendChild(option);
       });
@@ -120,11 +121,12 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Erro ao buscar despesas:", error);
       showError(error.message);
     }
+    // Não precisamos de hideLoading no finally aqui, renderDespesasTable já sobrescreve
   }
 
   // Função para renderizar a tabela de despesas
   function renderDespesasTable(despesas) {
-    despesasTableBody.innerHTML = "";
+    despesasTableBody.innerHTML = ""; // Limpa o corpo da tabela
     if (despesas.length === 0) {
       despesasTableBody.innerHTML =
         '<tr><td colspan="8">Nenhuma despesa cadastrada.</td></tr>';
@@ -152,11 +154,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Coluna de Ações
       const actionsCell = row.insertCell(6);
-      actionsCell.classList.add("table-actions");
+      actionsCell.classList.add("table-actions"); // Adiciona classe para estilização dos botões
 
       const editBtn = document.createElement("button");
       editBtn.innerHTML = '<i class="fas fa-edit"></i>';
-      editBtn.classList.add("btn-edit");
+      editBtn.classList.add("btn-edit"); // Adiciona classe para estilização específica
       editBtn.title = "Editar Despesa";
       editBtn.addEventListener("click", (e) => {
         e.stopPropagation(); // Impede que o clique na linha, se houver, também ative
@@ -166,8 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const deleteBtn = document.createElement("button");
       deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-      deleteBtn.classList.add("btn-delete");
-      deleteBtn.style.color = "#e74c3c";
+      deleteBtn.classList.add("btn-delete"); // Adiciona classe para estilização específica
       deleteBtn.title = "Excluir Despesa";
       deleteBtn.addEventListener("click", (e) => {
         e.stopPropagation(); // Impede que o clique na linha, se houver, também ative
@@ -266,48 +267,33 @@ document.addEventListener("DOMContentLoaded", () => {
     dataDespesaInput.setAttribute("max", maxDate);
   }
 
+  // --- Funções do Modal de Edição ---
 
   // Função para abrir o modal e preencher os inputs com os dados da despesa
   async function openEditModal(expense) {
+    // Preenche os inputs do formulário com os dados da despesa
     editExpenseId.value = expense.id;
     editExpenseName.value = expense.nome_despesa;
-    editExpenseValue.value = parseFloat(expense.valor).toFixed(2);
+    editExpenseValue.value = parseFloat(expense.valor).toFixed(2); // Garante 2 casas decimais
+    // Formata as datas para YYYY-MM-DD para inputs type="date"
+    editExpenseDate.value = expense.data_despesa
+      ? expense.data_despesa.split("T")[0]
+      : "";
+    editExpenseDueDate.value = expense.data_vencimento_mensal
+      ? expense.data_vencimento_mensal.split("T")[0]
+      : "";
 
-    // Função auxiliar para formatar uma data para YYYY-MM-DD
-    const formatDateForInput = (dateString) => {
-      if (!dateString) return "";
-      try {
-        const date = new Date(dateString);
-
-        if (isNaN(date.getTime())) {
-          console.warn("Data inválida recebida:", dateString);
-          return "";
-        }
-
-        // Pega o ano, mês e dia e formata para YYYY-MM-DD
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0"); // Mês é 0-11, então +1
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-      } catch (e) {
-        console.error("Erro ao processar data:", dateString, e);
-        return "";
-      }
-    };
-
-    editExpenseDate.value = formatDateForInput(expense.data_despesa);
-    editExpenseDueDate.value = formatDateForInput(
-      expense.data_vencimento_mensal
+    // Preencher as opções de categoria no modal e pré-selecionar a correta
+    await populateCategoriesForModal(
+      expense.categoria ? expense.categoria.id : null
     );
 
-    await populateCategoriesForModal(expense.categoria);
-
-    expenseDetailsModal.style.display = "flex";
+    expenseDetailsModal.style.display = "flex"; // Exibe o modal
   }
 
   function closeEditModal() {
-    expenseDetailsModal.style.display = "none";
-    editExpenseForm.reset();
+    expenseDetailsModal.style.display = "none"; // Esconde o modal
+    editExpenseForm.reset(); // Limpa o formulário
   }
 
   // --- Event Listeners para o Modal de Edição ---

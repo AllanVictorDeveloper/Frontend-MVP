@@ -1,7 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const API_BASE_URL = "http://127.0.0.1:5000"; // URL base da API
-
-  // Elementos do DOM - Globalmente acessíveis
+  const API_BASE_URL = "http://127.0.0.1:5000"; // Sua URL base da API
   const despesasTableBody = document.getElementById("despesas-table-body");
   const categoriaSelect = document.getElementById("categoria_id");
   const addDespesaBtn = document.getElementById("add-despesa-btn");
@@ -13,13 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const dataDespesaInput = document.getElementById("data_despesa");
   const despesaContainetTable = document.querySelector(".table-container");
 
-  // Elementos do Modal de Edição
-  const expenseDetailsModal = document.getElementById("expense-details-modal");
-  const closeButton = expenseDetailsModal.querySelector(".close-button");
-  const editExpenseForm = document.getElementById("edit-expense-form");
-  const cancelEditExpenseBtn = document.getElementById("cancel-edit-expense");
-
-  // Inputs específicos do formulário de edição dentro do modal
   const editExpenseId = document.getElementById("edit-expense-id");
   const editExpenseName = document.getElementById("edit-expense-name");
   const editExpenseValue = document.getElementById("edit-expense-value");
@@ -27,14 +18,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const editExpenseDueDate = document.getElementById("edit-expense-due-date");
   const editExpenseCategory = document.getElementById("edit-expense-category");
 
+  // --- Elementos do Modal de Edição ---
+  const expenseDetailsModal = document.getElementById("expense-details-modal");
+  const closeButton = expenseDetailsModal.querySelector(".close-button");
+  const editExpenseForm = document.getElementById("edit-expense-form");
+  const cancelEditExpenseBtn = document.getElementById("cancel-edit-expense");
 
+  // Funções para manipulação do DOM
   function showLoading() {
     despesasTableBody.innerHTML =
       '<tr><td colspan="8">Carregando despesas...</td></tr>';
   }
 
-  // Não precisamos de hideLoading explícito se o conteúdo sempre substitui
-  // function hideLoading() { }
+  function hideLoading() {
+    // Nada a fazer, o conteúdo será substituído
+  }
 
   function showError(message) {
     despesasTableBody.innerHTML = `<tr><td colspan="8" style="color: red;">Erro: ${message}</td></tr>`;
@@ -42,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Funções de Interação com a API ---
 
-  // Função para carregar categorias e preencher o select de ADIÇÃO
+  // Função para carregar categorias e preencher o select
   async function loadCategorias() {
     try {
       const response = await fetch(`${API_BASE_URL}/buscar_categorias`);
@@ -52,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const data = await response.json();
       categoriaSelect.innerHTML =
-        '<option value="">Selecione uma categoria</option>'; // Opção padrão
+        '<option value="">Selecione uma categoria</option>';
       data.categorias.forEach((categoria) => {
         const option = document.createElement("option");
         option.value = categoria.id;
@@ -60,48 +58,8 @@ document.addEventListener("DOMContentLoaded", () => {
         categoriaSelect.appendChild(option);
       });
     } catch (error) {
-      console.error(
-        "Erro ao carregar categorias para formulário de adição:",
-        error
-      );
-      alert(
-        "Não foi possível carregar as categorias para adição: " + error.message
-      );
-    }
-  }
-
-  // Função para preencher o select de categorias NO MODAL DE EDIÇÃO
-  async function populateCategoriesForModal(categoria) {
-    editExpenseCategory.innerHTML = '<option value="">Carregando...</option>';
-    try {
-      const response = await fetch(`${API_BASE_URL}/buscar_categorias`);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || "Erro ao carregar categorias para o modal."
-        );
-      }
-      const data = await response.json();
-      const categories = data.categorias;
-
-      editExpenseCategory.innerHTML =
-        '<option value="">Selecione uma categoria</option>';
-      categories.forEach((category) => {
-        const option = document.createElement("option");
-        option.value = category.id;
-        option.textContent = category.nome;
-        if (category.nome === categoria.nome) {
-          option.selected = true;
-        }
-        editExpenseCategory.appendChild(option);
-      });
-    } catch (error) {
-      console.error("Erro ao carregar categorias para o modal:", error);
-      editExpenseCategory.innerHTML =
-        '<option value="">Erro ao carregar categorias</option>';
-      alert(
-        "Não foi possível carregar as categorias para edição: " + error.message
-      );
+      console.error("Erro ao carregar categorias:", error);
+      // alert('Não foi possível carregar as categorias: ' + error.message);
     }
   }
 
@@ -119,12 +77,14 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.error("Erro ao buscar despesas:", error);
       showError(error.message);
+    } finally {
+      hideLoading();
     }
   }
 
   // Função para renderizar a tabela de despesas
   function renderDespesasTable(despesas) {
-    despesasTableBody.innerHTML = "";
+    despesasTableBody.innerHTML = ""; // Limpa o corpo da tabela
     if (despesas.length === 0) {
       despesasTableBody.innerHTML =
         '<tr><td colspan="8">Nenhuma despesa cadastrada.</td></tr>';
@@ -145,35 +105,19 @@ document.addEventListener("DOMContentLoaded", () => {
       row.insertCell(4).textContent = despesa.data_vencimento_mensal
         ? new Date(despesa.data_vencimento_mensal).toLocaleDateString("pt-BR")
         : "N/A";
-      // Garante que o nome da categoria seja exibido
       row.insertCell(5).textContent = despesa.categoria
         ? despesa.categoria.nome
         : "N/A";
 
       // Coluna de Ações
       const actionsCell = row.insertCell(6);
-      actionsCell.classList.add("table-actions");
-
-      const editBtn = document.createElement("button");
-      editBtn.innerHTML = '<i class="fas fa-edit"></i>';
-      editBtn.classList.add("btn-edit");
-      editBtn.title = "Editar Despesa";
-      editBtn.addEventListener("click", (e) => {
-        e.stopPropagation(); // Impede que o clique na linha, se houver, também ative
-        openEditModal(despesa); // Passa o objeto completo da despesa
-      });
-      actionsCell.appendChild(editBtn);
-
       const deleteBtn = document.createElement("button");
       deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-      deleteBtn.classList.add("btn-delete");
-      deleteBtn.style.color = "#e74c3c";
+      deleteBtn.classList.add("delete-btn");
       deleteBtn.title = "Excluir Despesa";
-      deleteBtn.addEventListener("click", (e) => {
-        e.stopPropagation(); // Impede que o clique na linha, se houver, também ative
-        deleteDespesa(despesa.id);
-      });
+      deleteBtn.addEventListener("click", () => deleteDespesa(despesa.id));
       actionsCell.appendChild(deleteBtn);
+      // Poderia adicionar botão de editar aqui também
     });
   }
 
@@ -195,6 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       if (response.status === 204) {
+        // 204 No Content para deleção bem-sucedida
         alert("Despesa excluída com sucesso!");
         fetchAndDisplayDespesas(); // Recarrega a lista
       } else if (response.status === 404) {
@@ -220,16 +165,19 @@ document.addEventListener("DOMContentLoaded", () => {
       despesaData[key] = value;
     }
 
+    // Converte valor para float
     despesaData.valor = parseFloat(despesaData.valor);
+    // categoria_id já deve ser int pelo select
     despesaData.categoria_id = parseInt(despesaData.categoria_id);
 
-    // Ajusta para null se o campo de data estiver vazio
-    despesaData.data_despesa =
-      despesaData.data_despesa === "" ? null : despesaData.data_despesa;
-    despesaData.data_vencimento_mensal =
-      despesaData.data_vencimento_mensal === ""
-        ? null
-        : despesaData.data_vencimento_mensal;
+    // Se data_despesa for vazia, envia como null (se o seu backend aceitar)
+    if (despesaData.data_despesa === "") {
+      despesaData.data_despesa = null;
+    }
+
+    if (despesaData.data_vencimento_mensal === "") {
+      despesaData.data_vencimento_mensal = null;
+    }
 
     try {
       const response = await fetch(`${API_BASE_URL}/cadastrar_despesas`, {
@@ -241,6 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       if (response.status === 201) {
+        // 201 Created
         alert("Despesa adicionada com sucesso!");
         addDespesaForm.reset(); // Limpa o formulário
         addDespesaFormContainer.style.display = "none"; // Esconde o formulário
@@ -256,63 +205,65 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- Função para Definir a Data Máxima no input de Adição ---
+  // --- Nova Função para Definir a Data Máxima ---
   function setMaxDateForDespesa() {
     const today = new Date();
     const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
+    // Mês e dia precisam ter 2 dígitos (ex: 01, 09)
+    const month = String(today.getMonth() + 1).padStart(2, "0"); // Mês é 0-11, então +1
     const day = String(today.getDate()).padStart(2, "0");
+
     const maxDate = `${year}-${month}-${day}`;
     dataDespesaInput.setAttribute("max", maxDate);
   }
 
-
   // Função para abrir o modal e preencher os inputs com os dados da despesa
   async function openEditModal(expense) {
+    // Preenche os inputs do formulário com os dados da despesa
     editExpenseId.value = expense.id;
     editExpenseName.value = expense.nome_despesa;
-    editExpenseValue.value = parseFloat(expense.valor).toFixed(2);
+    editExpenseValue.value = parseFloat(expense.valor).toFixed(2); // Garante 2 casas decimais
+    editExpenseDate.value = expense.data_despesa
+      ? expense.data_despesa.split("T")[0]
+      : ""; // Formato YYYY-MM-DD
+    editExpenseDueDate.value = expense.data_vencimento_mensal
+      ? expense.data_vencimento_mensal.split("T")[0]
+      : ""; // Formato YYYY-MM-DD
 
-    // Função auxiliar para formatar uma data para YYYY-MM-DD
-    const formatDateForInput = (dateString) => {
-      if (!dateString) return "";
-      try {
-        const date = new Date(dateString);
+    // Preencher as opções de categoria (assumindo que você tem uma função para isso)
+    await populateCategoriesForModal(expense.categoria_id); // Passa o ID da categoria atual para pré-selecionar
 
-        if (isNaN(date.getTime())) {
-          console.warn("Data inválida recebida:", dateString);
-          return "";
+    expenseDetailsModal.style.display = "flex"; // Exibe o modal
+  }
+
+  async function populateCategoriesForModal(selectedCategoryId = null) {
+    editExpenseCategory.innerHTML = '<option value="">Carregando...</option>';
+    try {
+      // Substitua pelo seu endpoint de categorias
+      const response = await fetch("/api/categories");
+      const categories = await response.json();
+
+      editExpenseCategory.innerHTML = "";
+      categories.forEach((category) => {
+        const option = document.createElement("option");
+        option.value = category.id;
+        option.textContent = category.nome;
+        if (selectedCategoryId && category.id === selectedCategoryId) {
+          option.selected = true; // Pré-seleciona a categoria atual da despesa
         }
-
-        // Pega o ano, mês e dia e formata para YYYY-MM-DD
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0"); // Mês é 0-11, então +1
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-      } catch (e) {
-        console.error("Erro ao processar data:", dateString, e);
-        return "";
-      }
-    };
-
-    editExpenseDate.value = formatDateForInput(expense.data_despesa);
-    editExpenseDueDate.value = formatDateForInput(
-      expense.data_vencimento_mensal
-    );
-
-    await populateCategoriesForModal(expense.categoria);
-
-    expenseDetailsModal.style.display = "flex";
+        editExpenseCategory.appendChild(option);
+      });
+    } catch (error) {
+      console.error("Erro ao carregar categorias para o modal:", error);
+      editExpenseCategory.innerHTML =
+        '<option value="">Erro ao carregar categorias</option>';
+    }
   }
 
   function closeEditModal() {
-    expenseDetailsModal.style.display = "none";
-    editExpenseForm.reset();
+    expenseDetailsModal.style.display = "none"; // Esconde o modal
+    editExpenseForm.reset(); // Limpa o formulário
   }
-
-  // --- Event Listeners para o Modal de Edição ---
-  closeButton.addEventListener("click", closeEditModal);
-  cancelEditExpenseBtn.addEventListener("click", closeEditModal);
 
   // Fecha o modal se clicar fora do conteúdo do modal
   window.addEventListener("click", (event) => {
@@ -337,28 +288,29 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Dados a serem atualizados:", updatedExpenseData);
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/atualizar_despesa/${expenseId}`,
-        {
-          // Adapte para o seu endpoint de atualização
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            // 'Authorization': 'Bearer SEU_TOKEN' // Se precisar de autenticação
-          },
-          body: JSON.stringify(updatedExpenseData),
-        }
-      );
+      // Aqui você fará a chamada à sua API para atualizar a despesa
+      // Exemplo com fetch API para um endpoint PUT
+      const response = await fetch(`/api/despesas/${expenseId}`, {
+        // Adapte seu endpoint
+        method: "PUT", // Ou PATCH, dependendo da sua API
+        headers: {
+          "Content-Type": "application/json",
+          // 'Authorization': 'Bearer SEU_TOKEN' // Se precisar de autenticação
+        },
+        body: JSON.stringify(updatedExpenseData),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Erro ao atualizar despesa.");
+        throw new Error(errorData.message || "Erro ao atualizar despesa");
       }
 
       const result = await response.json();
       console.log("Despesa atualizada com sucesso:", result);
 
-      fetchAndDisplayDespesas(); // Recarrega a lista de despesas atualizada
+      // Opcional: Atualize a tabela na página sem recarregar tudo
+      // ou recarregue todas as despesas:
+      loadDespesas();
       closeEditModal(); // Fecha o modal após o sucesso
       alert("Despesa atualizada com sucesso!"); // Feedback para o usuário
     } catch (error) {
@@ -367,12 +319,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- Event Listeners para o formulário de Adição/Tabela ---
+  // --- Event Listeners para o Modal ---
+  closeButton.addEventListener("click", closeEditModal);
+  cancelEditExpenseBtn.addEventListener("click", closeEditModal);
+  // --- Event Listeners ---
   addDespesaBtn.addEventListener("click", () => {
     addDespesaFormContainer.style.display = "block";
     despesaContainetTable.style.display = "none"; // Esconde a tabela de despesas
-    addDespesaForm.reset(); // Limpa o formulário ao abrir
-    loadCategorias(); // Carrega as categorias ao abrir o formulário de adição
+
+    loadCategorias(); // Carrega as categorias ao abrir o formulário
   });
 
   cancelAddDespesaBtn.addEventListener("click", () => {
@@ -382,8 +337,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   addDespesaForm.addEventListener("submit", addDespesa);
 
-  // --- Inicialização ---
-  fetchAndDisplayDespesas(); // Carrega despesas ao iniciar
-  setMaxDateForDespesa(); // Define a data máxima para o input de data no formulário de adição
-  // loadCategorias(); // Não é mais necessário aqui, pois é chamado ao abrir o form ou o modal
+  // Carregar despesas ao iniciar a página
+  fetchAndDisplayDespesas();
+  setMaxDateForDespesa();
+  loadCategorias(); // Carrega categorias para o caso de o formulário ser aberto logo de cara
 });

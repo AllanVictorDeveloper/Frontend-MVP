@@ -1,3 +1,4 @@
+/* Base */
 body {
   font-family: Arial, sans-serif;
   margin: 0;
@@ -38,7 +39,7 @@ body {
   list-style: none;
   padding: 0;
   margin: 0;
-  flex-grow: 1;
+  flex-grow: 1; /* Para ocupar espaço entre header e footer */
 }
 
 .sidebar-nav li a {
@@ -59,7 +60,7 @@ body {
 .sidebar-nav li a:hover,
 .sidebar-nav li a.active {
   background-color: #34495e;
-  color: #f1c40f;
+  color: #f1c40f; /* Yellow accent */
 }
 
 .sidebar-footer {
@@ -87,7 +88,7 @@ body {
   display: block;
   text-align: center;
   padding: 10px;
-  background-color: #e74c3c;
+  background-color: #e74c3c; /* Red color for exit */
   color: white !important;
   border-radius: 5px;
   text-decoration: none;
@@ -133,7 +134,7 @@ body {
 }
 
 .btn-primary {
-  background-color: #3498db;
+  background-color: #3498db; /* Blue */
   color: white;
   border: none;
   padding: 10px 20px;
@@ -148,7 +149,7 @@ body {
 }
 
 .btn-secondary {
-  background-color: #95a5a6;
+  background-color: #95a5a6; /* Grey */
   color: white;
   border: none;
   padding: 10px 20px;
@@ -165,7 +166,8 @@ body {
 .user-avatar {
   width: 40px;
   height: 40px;
-  background-color: #f1c40f;
+  background-color: #f1c40f; /* Yellow */
+  color: #2c3e50;
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -186,7 +188,7 @@ body {
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  overflow-x: auto;
+  overflow-x: auto; /* Para tabelas largas em telas pequenas */
 }
 
 table {
@@ -301,64 +303,6 @@ table tbody tr:last-child td {
   margin-left: 10px;
 }
 
-/* Modal */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%; 
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.6); 
-
-  /* Centraliza o modal-content */
-  display: flex; 
-  justify-content: center; /* Centraliza verticalmente */
-}
-
-.modal-content {
-  background-color: #fefefe;
-  padding: 20px;
-  border: 1px solid #888;
-  width: 90%; 
-  max-width: 600px;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); 
-  position: relative; 
-  animation-name: animatemodal;
-  animation-duration: 0.4s;
-}
-
-/* Keyframes para animação de entrada do modal */
-@keyframes animatemodal {
-  from {
-    top: -300px; 
-    opacity: 0;
-  }
-  to {
-    top: 0;
-    opacity: 1;
-  }
-}
-
-.close-button {
-  color: #aaa;
-  position: absolute;
-  top: 10px; 
-  right: 20px;
-  font-size: 30px;
-  font-weight: bold;
-  cursor: pointer;
-  z-index: 1001;
-}
-
-.close-button:hover,
-.close-button:focus {
-  color: #333;
-  text-decoration: none;
-}
 
 .modal-content label {
   display: block;
@@ -372,17 +316,17 @@ table tbody tr:last-child td {
 .modal-content input[type="number"],
 .modal-content input[type="date"],
 .modal-content select {
-  width: calc(100% - 20px);
+  width: calc(100% - 20px); /* Ajuste para padding */
   padding: 10px;
   margin-bottom: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  box-sizing: border-box;
+  box-sizing: border-box; /* Inclui padding e borda na largura total */
 }
 
 .modal-actions {
   margin-top: 20px;
-  text-align: right;
+  text-align: right; /* Alinha os botões à direita */
 }
 
 .modal-actions .btn-primary,
@@ -413,7 +357,7 @@ table tbody tr:last-child td {
   background-color: #5a6268;
 }
 
-
+/* Responsividade básica (se precisar) */
 @media (max-width: 768px) {
   .app-container {
     flex-direction: column;
@@ -435,7 +379,7 @@ table tbody tr:last-child td {
     white-space: nowrap;
   }
   .sidebar-footer {
-    display: none;
+    display: none; /* Esconde dica e sair em telas pequenas */
   }
   .header {
     flex-direction: column;

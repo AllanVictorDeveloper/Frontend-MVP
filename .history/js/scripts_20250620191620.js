@@ -1,9 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const API_BASE_URL = "http://127.0.0.1:5000"; // URL base da API
+  const API_BASE_URL = "http://127.0.0.1:5000"; // Sua URL base da API
 
   // Elementos do DOM - Globalmente acessíveis
   const despesasTableBody = document.getElementById("despesas-table-body");
-  const categoriaSelect = document.getElementById("categoria_id");
+  const categoriaSelect = document.getElementById("categoria_id"); // Para o form de adicionar
   const addDespesaBtn = document.getElementById("add-despesa-btn");
   const addDespesaFormContainer = document.getElementById(
     "add-despesa-form-container"
@@ -25,8 +25,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const editExpenseValue = document.getElementById("edit-expense-value");
   const editExpenseDate = document.getElementById("edit-expense-date");
   const editExpenseDueDate = document.getElementById("edit-expense-due-date");
-  const editExpenseCategory = document.getElementById("edit-expense-category");
+  const editExpenseCategory = document.getElementById("edit-expense-category"); // Select de categoria do modal
 
+  // --- Funções para manipulação do DOM e Feedback ao Usuário ---
 
   function showLoading() {
     despesasTableBody.innerHTML =
@@ -71,10 +72,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Função para preencher o select de categorias NO MODAL DE EDIÇÃO
-  async function populateCategoriesForModal(categoria) {
+  async function populateCategoriesForModal(selectedCategoryId = null) {
     editExpenseCategory.innerHTML = '<option value="">Carregando...</option>';
     try {
-      const response = await fetch(`${API_BASE_URL}/buscar_categorias`);
+      const response = await fetch(`${API_BASE_URL}/buscar_categorias`); // Use sua API_BASE_URL aqui
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
@@ -82,16 +83,16 @@ document.addEventListener("DOMContentLoaded", () => {
         );
       }
       const data = await response.json();
-      const categories = data.categorias;
+      const categories = data.categorias; // Ajuste para o formato da sua resposta da API
 
       editExpenseCategory.innerHTML =
-        '<option value="">Selecione uma categoria</option>';
+        '<option value="">Selecione uma categoria</option>'; // Opção padrão
       categories.forEach((category) => {
         const option = document.createElement("option");
         option.value = category.id;
         option.textContent = category.nome;
-        if (category.nome === categoria.nome) {
-          option.selected = true;
+        if (selectedCategoryId && category.id === selectedCategoryId) {
+          option.selected = true; // Pré-seleciona a categoria atual da despesa
         }
         editExpenseCategory.appendChild(option);
       });
@@ -120,6 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Erro ao buscar despesas:", error);
       showError(error.message);
     }
+    // Não precisamos de hideLoading no finally aqui, renderDespesasTable já sobrescreve
   }
 
   // Função para renderizar a tabela de despesas
@@ -266,6 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
     dataDespesaInput.setAttribute("max", maxDate);
   }
 
+  // --- Funções do Modal de Edição ---
 
   // Função para abrir o modal e preencher os inputs com os dados da despesa
   async function openEditModal(expense) {
@@ -291,7 +294,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return `${year}-${month}-${day}`;
       } catch (e) {
         console.error("Erro ao processar data:", dateString, e);
-        return "";
+        return ""; // Retorna vazio em caso de erro na conversão
       }
     };
 
@@ -300,14 +303,16 @@ document.addEventListener("DOMContentLoaded", () => {
       expense.data_vencimento_mensal
     );
 
-    await populateCategoriesForModal(expense.categoria);
+    await populateCategoriesForModal(
+      expense.categoria ? expense.categoria.id : null
+    );
 
     expenseDetailsModal.style.display = "flex";
   }
 
   function closeEditModal() {
-    expenseDetailsModal.style.display = "none";
-    editExpenseForm.reset();
+    expenseDetailsModal.style.display = "none"; // Esconde o modal
+    editExpenseForm.reset(); // Limpa o formulário
   }
 
   // --- Event Listeners para o Modal de Edição ---

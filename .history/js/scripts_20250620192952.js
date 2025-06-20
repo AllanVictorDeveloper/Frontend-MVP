@@ -120,6 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Erro ao buscar despesas:", error);
       showError(error.message);
     }
+    // Não precisamos de hideLoading no finally aqui, renderDespesasTable já sobrescreve
   }
 
   // Função para renderizar a tabela de despesas
