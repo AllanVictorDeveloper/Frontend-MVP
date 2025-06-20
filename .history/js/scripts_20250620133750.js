@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/deletar_despesa`, {
+      const response = await fetch(`${API_BASE_URL}/despesas`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
