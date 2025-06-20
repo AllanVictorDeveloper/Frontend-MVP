@@ -303,7 +303,7 @@ table tbody tr:last-child td {
 
 .container_btn {
   display: flex;
-  justify-content:flex-end;
+  justify-content: space-between;
   margin-top: 20px;
 }
 

@@ -303,7 +303,7 @@ table tbody tr:last-child td {
 
 .container_btn {
   display: flex;
-  justify-content:flex-end;
+  justify-content: space-between;
   margin-top: 20px;
 }
 
@@ -387,11 +387,13 @@ table tbody tr:last-child td {
 }
 
 .modal-actions {
-  width: 100%;
-  max-width: 580px;
-  display: flex;
-  justify-content: right;
-  margin-top: 20px;
+    width: 90%;
+    /* padding: 10px; */
+    background-color: red;
+    display: flex;
+    justify-content:right;
+    margin-top: 20px;
+
 }
 
 .modal-actions .btn-primary,

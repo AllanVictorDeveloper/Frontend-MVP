@@ -192,6 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const botaoExcluir = document.createElement("button");
       botaoExcluir.innerHTML = '<i class="fas fa-trash"></i>';
       botaoExcluir.classList.add("btn-delete");
+    //   botaoExcluir.style.color = "#e74c3c";
       botaoExcluir.title = "Excluir Despesa";
       botaoExcluir.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -290,6 +291,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Função para abrir o modal e preencher os inputs com os dados da despesa
   async function abrirModalEdicao(despesa) {
+    console.log("Abrindo modal de edição para a despesa:", despesa);
+
     inputIdDespesaEdicao.value = despesa.id;
     inputNomeDespesaEdicao.value = despesa.nome_despesa;
     inputValorDespesaEdicao.value = parseFloat(despesa.valor).toFixed(2);
@@ -299,7 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
       despesa.data_vencimento_mensal
     );
 
-    // Passr a categoria, se a categoria existir, senão passa null
+    // Passa o ID da categoria, se a categoria existir, senão passa null
     await popularCategoriasParaModal(
       despesa.categoria ? despesa.categoria : null
     );
@@ -323,7 +326,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  //  Lidar com o envio do formulário de edição
+  // --- Lidar com o envio do formulário de edição ---
   formularioEditarDespesa.addEventListener("submit", async (evento) => {
     evento.preventDefault(); // Impede o envio padrão do formulário
 
@@ -331,8 +334,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const dadosDespesaAtualizados = {
       nome_despesa: inputNomeDespesaEdicao.value,
       valor: parseFloat(inputValorDespesaEdicao.value),
-      data_despesa: inputDataDespesaEdicao.value || null,
-      data_vencimento_mensal: inputDataVencimentoMensalEdicao.value || null,
+      data_despesa: inputDataDespesaEdicao.value || null, // Envia null se vazio
+      data_vencimento_mensal: inputDataVencimentoMensalEdicao.value || null, // Envia null se vazio
       categoria_id: parseInt(selectCategoriaEdicao.value),
     };
 
@@ -345,6 +348,7 @@ document.addEventListener("DOMContentLoaded", () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            // 'Authorization': 'Bearer SEU_TOKEN' // Se precisar de autenticação
           },
           body: JSON.stringify(dadosDespesaAtualizados),
         }
@@ -356,13 +360,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const resultado = await resposta.json();
+      console.log("Despesa atualizada com sucesso:", resultado);
 
-      buscarEExibirDespesas();
-      fecharModalEdicao();
-      alert("Despesa atualizada com sucesso!");
+      buscarEExibirDespesas(); // Recarrega a lista de despesas atualizada
+      fecharModalEdicao(); // Fecha o modal após o sucesso
+      alert("Despesa atualizada com sucesso!"); // Feedback para o usuário
     } catch (erro) {
       console.error("Erro ao salvar edições da despesa:", erro);
-      alert(`Erro ao atualizar despesa: ${erro.message}`);
+      alert(`Erro ao atualizar despesa: ${erro.message}`); // Feedback de erro
     }
   });
 

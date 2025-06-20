@@ -246,11 +246,11 @@ table tbody tr:last-child td {
   color: #2980b9;
 }
 
-.table-actions .btn-delete {
+.table-actions .delete-btn {
   color: #e74c3c !important;
 }
 
-.table-actions .btn-delete:hover {
+.table-actions .delete-btn:hover {
   color: #c0392b !important;
 }
 
@@ -301,10 +301,10 @@ table tbody tr:last-child td {
   margin-left: 10px;
 }
 
-.container_btn {
-  display: flex;
-  justify-content:flex-end;
-  margin-top: 20px;
+.container_btn{
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
 }
 
 /* Modal */
@@ -314,13 +314,13 @@ table tbody tr:last-child td {
   z-index: 1000;
   left: 0;
   top: 0;
-  width: 100%;
+  width: 100%; 
   height: 100%;
   overflow: auto;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.6); 
 
   /* Centraliza o modal-content */
-  display: flex;
+  display: flex; 
   justify-content: center; /* Centraliza verticalmente */
 }
 
@@ -328,11 +328,11 @@ table tbody tr:last-child td {
   background-color: #fefefe;
   padding: 20px;
   border: 1px solid #888;
-  width: 100%;
+  width: 90%; 
   max-width: 600px;
   border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  position: relative;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); 
+  position: relative; 
   animation-name: animatemodal;
   animation-duration: 0.4s;
 }
@@ -340,7 +340,7 @@ table tbody tr:last-child td {
 /* Keyframes para animação de entrada do modal */
 @keyframes animatemodal {
   from {
-    top: -300px;
+    top: -300px; 
     opacity: 0;
   }
   to {
@@ -352,7 +352,7 @@ table tbody tr:last-child td {
 .close-button {
   color: #aaa;
   position: absolute;
-  top: 10px;
+  top: 10px; 
   right: 20px;
   font-size: 30px;
   font-weight: bold;
@@ -387,11 +387,8 @@ table tbody tr:last-child td {
 }
 
 .modal-actions {
-  width: 100%;
-  max-width: 580px;
-  display: flex;
-  justify-content: right;
   margin-top: 20px;
+  text-align: right;
 }
 
 .modal-actions .btn-primary,
@@ -421,6 +418,7 @@ table tbody tr:last-child td {
 .modal-actions .btn-secondary:hover {
   background-color: #5a6268;
 }
+
 
 @media (max-width: 768px) {
   .app-container {

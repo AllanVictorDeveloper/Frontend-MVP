@@ -46,16 +46,16 @@ document.addEventListener("DOMContentLoaded", () => {
     corpoTabelaDespesas.innerHTML = `<tr><td colspan="8" style="color: red;">Erro: ${mensagem}</td></tr>`;
   }
 
-  // --- Função auxiliar para formatar datas ---
+  // --- Função auxiliar para formatar datas (já aprimorada) ---
   const formatarDataParaInput = (stringData) => {
-    if (!stringData) return "";
+    if (!stringData) return ""; // Retorna vazio se a string for nula ou vazia
 
     try {
       const data = new Date(stringData);
 
       if (isNaN(data.getTime())) {
         console.warn("Data inválida recebida:", stringData);
-        return "";
+        return ""; // Retorna vazio se a data for inválida
       }
 
       const ano = data.getFullYear();
@@ -64,9 +64,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return `${ano}-${mes}-${dia}`;
     } catch (e) {
       console.error("Erro ao processar data:", stringData, e);
-      return "";
+      return ""; // Retorna vazio em caso de erro na conversão
     }
   };
+
+  // --- Funções de Interação com a API ---
 
   // Função para carregar categorias e preencher o select de ADIÇÃO
   async function carregarCategoriasAdicao() {
@@ -78,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const dados = await resposta.json();
       selectCategoriaAdicao.innerHTML =
-        '<option value="">Selecione uma categoria</option>';
+        '<option value="">Selecione uma categoria</option>'; // Opção padrão
       dados.categorias.forEach((categoria) => {
         const opcao = document.createElement("option");
         opcao.value = categoria.id;
@@ -98,6 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Função para preencher o select de categorias NO MODAL DE EDIÇÃO
   async function popularCategoriasParaModal(categoriaItem) {
+    // Renomeado para refletir que recebe o ID
     selectCategoriaEdicao.innerHTML = '<option value="">Carregando...</option>';
     try {
       const resposta = await fetch(`${URL_BASE_API}/buscar_categorias`);
@@ -111,11 +114,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const categorias = dados.categorias;
 
       selectCategoriaEdicao.innerHTML =
-        '<option value="">Selecione uma categoria</option>';
+        '<option value="">Selecione uma categoria</option>'; // Opção padrão
       categorias.forEach((categoria) => {
         const opcao = document.createElement("option");
         opcao.value = categoria.id;
         opcao.textContent = categoria.nome;
+        // Agora compara o ID diretamente para pré-selecionar
         if (categoriaItem.nome === categoria.nome) {
           opcao.selected = true;
         }
@@ -185,13 +189,14 @@ document.addEventListener("DOMContentLoaded", () => {
       botaoEditar.title = "Editar Despesa";
       botaoEditar.addEventListener("click", (e) => {
         e.stopPropagation();
-        abrirModalEdicao(despesa);
+        abrirModalEdicao(despesa); // Passa o objeto completo da despesa
       });
       celulaAcoes.appendChild(botaoEditar);
 
       const botaoExcluir = document.createElement("button");
       botaoExcluir.innerHTML = '<i class="fas fa-trash"></i>';
       botaoExcluir.classList.add("btn-delete");
+      botaoExcluir.style.color = "#e74c3c";
       botaoExcluir.title = "Excluir Despesa";
       botaoExcluir.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -290,6 +295,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Função para abrir o modal e preencher os inputs com os dados da despesa
   async function abrirModalEdicao(despesa) {
+    console.log("Abrindo modal de edição para a despesa:", despesa);
+
     inputIdDespesaEdicao.value = despesa.id;
     inputNomeDespesaEdicao.value = despesa.nome_despesa;
     inputValorDespesaEdicao.value = parseFloat(despesa.valor).toFixed(2);
@@ -299,7 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
       despesa.data_vencimento_mensal
     );
 
-    // Passr a categoria, se a categoria existir, senão passa null
+    // Passa o ID da categoria, se a categoria existir, senão passa null
     await popularCategoriasParaModal(
       despesa.categoria ? despesa.categoria : null
     );
@@ -323,7 +330,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  //  Lidar com o envio do formulário de edição
+  // --- Lidar com o envio do formulário de edição ---
   formularioEditarDespesa.addEventListener("submit", async (evento) => {
     evento.preventDefault(); // Impede o envio padrão do formulário
 
@@ -331,8 +338,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const dadosDespesaAtualizados = {
       nome_despesa: inputNomeDespesaEdicao.value,
       valor: parseFloat(inputValorDespesaEdicao.value),
-      data_despesa: inputDataDespesaEdicao.value || null,
-      data_vencimento_mensal: inputDataVencimentoMensalEdicao.value || null,
+      data_despesa: inputDataDespesaEdicao.value || null, // Envia null se vazio
+      data_vencimento_mensal: inputDataVencimentoMensalEdicao.value || null, // Envia null se vazio
       categoria_id: parseInt(selectCategoriaEdicao.value),
     };
 
@@ -345,6 +352,7 @@ document.addEventListener("DOMContentLoaded", () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            // 'Authorization': 'Bearer SEU_TOKEN' // Se precisar de autenticação
           },
           body: JSON.stringify(dadosDespesaAtualizados),
         }
@@ -356,13 +364,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const resultado = await resposta.json();
+      console.log("Despesa atualizada com sucesso:", resultado);
 
-      buscarEExibirDespesas();
-      fecharModalEdicao();
-      alert("Despesa atualizada com sucesso!");
+      buscarEExibirDespesas(); // Recarrega a lista de despesas atualizada
+      fecharModalEdicao(); // Fecha o modal após o sucesso
+      alert("Despesa atualizada com sucesso!"); // Feedback para o usuário
     } catch (erro) {
       console.error("Erro ao salvar edições da despesa:", erro);
-      alert(`Erro ao atualizar despesa: ${erro.message}`);
+      alert(`Erro ao atualizar despesa: ${erro.message}`); // Feedback de erro
     }
   });
 
