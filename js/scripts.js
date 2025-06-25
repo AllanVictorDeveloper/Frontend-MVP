@@ -327,8 +327,9 @@ document.addEventListener("DOMContentLoaded", () => {
   formularioEditarDespesa.addEventListener("submit", async (evento) => {
     evento.preventDefault(); // Impede o envio padrão do formulário
 
-    const idDespesa = inputIdDespesaEdicao.value;
+    // const idDespesa = inputIdDespesaEdicao.value;
     const dadosDespesaAtualizados = {
+      despesa_id: inputIdDespesaEdicao.value,
       nome_despesa: inputNomeDespesaEdicao.value,
       valor: parseFloat(inputValorDespesaEdicao.value),
       data_despesa: inputDataDespesaEdicao.value || null,
@@ -336,11 +337,10 @@ document.addEventListener("DOMContentLoaded", () => {
       categoria_id: parseInt(selectCategoriaEdicao.value),
     };
 
-    console.log("Dados a serem atualizados:", dadosDespesaAtualizados);
 
     try {
       const resposta = await fetch(
-        `${URL_BASE_API}/atualizar_despesa/${idDespesa}`,
+        `${URL_BASE_API}/atualizar_despesa`,
         {
           method: "PUT",
           headers: {
