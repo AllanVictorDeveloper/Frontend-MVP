@@ -43,7 +43,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function mostrarErro(mensagem) {
-    corpoTabelaDespesas.innerHTML = `<tr><td colspan="8" style="color: red;">Erro: ${mensagem}</td></tr>`;
+    if (mensagem === "Failed to fetch")
+      mensagem =
+        "Erro de conexão com o servidor. Verifique se a API está rodando.";
+    corpoTabelaDespesas.innerHTML = `<tr><td colspan="8" style="color: red;">${mensagem}</td></tr>`;
   }
 
   // --- Função auxiliar para formatar datas ---
@@ -337,18 +340,14 @@ document.addEventListener("DOMContentLoaded", () => {
       categoria_id: parseInt(selectCategoriaEdicao.value),
     };
 
-
     try {
-      const resposta = await fetch(
-        `${URL_BASE_API}/atualizar_despesa`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(dadosDespesaAtualizados),
-        }
-      );
+      const resposta = await fetch(`${URL_BASE_API}/atualizar_despesa`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dadosDespesaAtualizados),
+      });
 
       if (!resposta.ok) {
         const dadosErro = await resposta.json();
