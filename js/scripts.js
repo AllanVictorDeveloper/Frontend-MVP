@@ -4,9 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const corpoTabelaDespesas = document.getElementById("despesas-table-body");
   const selectCategoriaAdicao = document.getElementById("categoria_id");
   const botaoAdicionarDespesa = document.getElementById("add-despesa-btn");
-  const containerFormAdicionarDespesa = document.getElementById(
-    "add-despesa-form-container"
-  );
+
   const formularioAdicionarDespesa =
     document.getElementById("add-despesa-form");
   const botaoCancelarAdicaoDespesa =
@@ -56,31 +54,31 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   botaoAdicionarDespesa.addEventListener("click", () => {
-  addExpenseModal.style.display = "flex";
-  formularioAdicionarDespesa.reset();
-  carregarCategoriasAdicao();
-  // containerTabelaDespesas.style.display = "none";
-});
+    addExpenseModal.style.display = "flex";
+    formularioAdicionarDespesa.reset();
+    carregarCategoriasAdicao();
+    // containerTabelaDespesas.style.display = "none";
+  });
 
-botaoCancelarAdicaoDespesa.addEventListener("click", () => {
-  fecharModalAddDespesa();
-});
-
-botaoFecharAddModal.addEventListener("click", () => {
-  fecharModalAddDespesa();
-});
-
-window.addEventListener("click", (evento) => {
-  if (evento.target === addExpenseModal) {
+  botaoCancelarAdicaoDespesa.addEventListener("click", () => {
     fecharModalAddDespesa();
-  }
-});
+  });
 
-function fecharModalAddDespesa() {
-  addExpenseModal.style.display = "none";
-  formularioAdicionarDespesa.reset();
-  containerTabelaDespesas.style.display = "block";
-}
+  botaoFecharAddModal.addEventListener("click", () => {
+    fecharModalAddDespesa();
+  });
+
+  window.addEventListener("click", (evento) => {
+    if (evento.target === addExpenseModal) {
+      fecharModalAddDespesa();
+    }
+  });
+
+  function fecharModalAddDespesa() {
+    addExpenseModal.style.display = "none";
+    formularioAdicionarDespesa.reset();
+    containerTabelaDespesas.style.display = "block";
+  }
 
   const formatarDataParaInput = (stringData) => {
     if (!stringData) return "";
@@ -241,7 +239,7 @@ function fecharModalAddDespesa() {
       if (resposta.status === 201) {
         mostrarToast("Despesa adicionada com sucesso!");
         formularioAdicionarDespesa.reset();
-        containerFormAdicionarDespesa.style.display = "none";
+        addExpenseModal.style.display = "none";
         containerTabelaDespesas.style.display = "block";
         buscarEExibirDespesas();
       } else {
@@ -314,8 +312,7 @@ function fecharModalAddDespesa() {
   });
 
   botaoAdicionarDespesa.addEventListener("click", () => {
-    containerFormAdicionarDespesa.style.display = "block";
-    containerTabelaDespesas.style.display = "none";
+    // containerTabelaDespesas.style.display = "none";
     formularioAdicionarDespesa.reset();
     carregarCategoriasAdicao();
   });
