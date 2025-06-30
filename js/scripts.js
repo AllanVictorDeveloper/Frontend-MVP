@@ -1,36 +1,33 @@
 document.addEventListener("DOMContentLoaded", () => {
   const URL_BASE_API = "http://127.0.0.1:5000";
 
+  // --- Elementos do DOM ---
   const corpoTabelaDespesas = document.getElementById("despesas-table-body");
-  const selectCategoriaAdicao = document.getElementById("categoria_id");
   const botaoAdicionarDespesa = document.getElementById("add-despesa-btn");
 
-  const formularioAdicionarDespesa =
-    document.getElementById("add-despesa-form");
-  const botaoCancelarAdicaoDespesa =
-    document.getElementById("cancel-add-despesa");
-  const inputDataDespesaAdicao = document.getElementById("data_despesa");
-  const containerTabelaDespesas = document.querySelector(".table-container");
+  // Modal Principal (Adicionar/Editar)
+  const expenseModal = document.getElementById("expense-modal");
+  const modalTitle = document.getElementById("modal-title");
+  const closeModalBtn = document.getElementById("close-modal-btn");
+  const cancelBtn = document.getElementById("cancel-btn");
+  const expenseForm = document.getElementById("expense-form");
 
-  const modalDetalhesDespesa = document.getElementById("expense-details-modal");
-  const botaoFecharModal = modalDetalhesDespesa.querySelector(".close-button");
-  const formularioEditarDespesa = document.getElementById("edit-expense-form");
-  const botaoCancelarEdicaoDespesa = document.getElementById(
-    "cancel-edit-expense"
-  );
+  // Campos do Formulário
+  const expenseIdInput = document.getElementById("expense-id");
+  const nomeDespesaInput = document.getElementById("nome_despesa");
+  const valorInput = document.getElementById("valor");
+  const categoriaSelect = document.getElementById("categoria_id");
+  const dataDespesaInput = document.getElementById("data_despesa");
+  const dataVencimentoInput = document.getElementById("data_vencimento_mensal");
 
-  const addExpenseModal = document.getElementById("add-expense-modal");
-  const botaoFecharAddModal = document.getElementById("close-add-modal");
-  const inputIdDespesaEdicao = document.getElementById("edit-expense-id");
-  const inputNomeDespesaEdicao = document.getElementById("edit-expense-name");
-  const inputValorDespesaEdicao = document.getElementById("edit-expense-value");
-  const inputDataDespesaEdicao = document.getElementById("edit-expense-date");
-  const inputDataVencimentoMensalEdicao = document.getElementById(
-    "edit-expense-due-date"
-  );
-  const selectCategoriaEdicao = document.getElementById(
-    "edit-expense-category"
-  );
+  // Modal de Confirmação
+  const confirmModal = document.getElementById("confirm-modal");
+  const confirmModalText = document.getElementById("confirm-modal-text");
+  const confirmOkBtn = document.getElementById("confirm-ok-btn");
+  const confirmCancelBtn = document.getElementById("confirm-cancel-btn");
+  let onConfirmCallback = null;
+
+  // --- Funções Auxiliares ---
 
   function mostrarToast(mensagem, tipo = "success") {
     const toast = document.createElement("div");
@@ -41,107 +38,64 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function mostrarCarregamento() {
-    corpoTabelaDespesas.innerHTML =
-      '<tr><td colspan="8">Carregando despesas...</td></tr>';
+    corpoTabelaDespesas.innerHTML = `<tr><td colspan="7" style="text-align:center;">Carregando despesas...</td></tr>`;
   }
 
   function mostrarErro(mensagem) {
-    if (mensagem === "Failed to fetch")
+    if (mensagem.includes("Failed to fetch")) {
       mensagem =
         "Erro de conexão com o servidor. Verifique se a API está rodando.";
-    corpoTabelaDespesas.innerHTML = `<tr><td colspan="8" style="color: red;">${mensagem}</td></tr>`;
-    mostrarToast(mensagem, "error");
-  }
-
-  botaoAdicionarDespesa.addEventListener("click", () => {
-    addExpenseModal.style.display = "flex";
-    formularioAdicionarDespesa.reset();
-    carregarCategoriasAdicao();
-    // containerTabelaDespesas.style.display = "none";
-  });
-
-  botaoCancelarAdicaoDespesa.addEventListener("click", () => {
-    fecharModalAddDespesa();
-  });
-
-  botaoFecharAddModal.addEventListener("click", () => {
-    fecharModalAddDespesa();
-  });
-
-  window.addEventListener("click", (evento) => {
-    if (evento.target === addExpenseModal) {
-      fecharModalAddDespesa();
     }
-  });
-
-  function fecharModalAddDespesa() {
-    addExpenseModal.style.display = "none";
-    formularioAdicionarDespesa.reset();
-    containerTabelaDespesas.style.display = "block";
+    corpoTabelaDespesas.innerHTML = `<tr><td colspan="7" style="color: red; text-align:center;">${mensagem}</td></tr>`;
+    mostrarToast(mensagem, "error");
   }
 
   const formatarDataParaInput = (stringData) => {
     if (!stringData) return "";
-    try {
-      const data = new Date(stringData);
-      if (isNaN(data.getTime())) return "";
-      const ano = data.getFullYear();
-      const mes = String(data.getMonth() + 1).padStart(2, "0");
-      const dia = String(data.getDate()).padStart(2, "0");
-      return `${ano}-${mes}-${dia}`;
-    } catch (e) {
-      return "";
-    }
+    const data = new Date(stringData);
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, "0");
+    const dia = String(data.getDate()).padStart(2, "0");
+    return `${ano}-${mes}-${dia}`;
   };
 
-  async function carregarCategoriasAdicao() {
+  async function carregarCategorias(selectElement, categoriaItem = null) {
+    selectElement.innerHTML = '<option value="">Carregando...</option>';
     try {
       const resposta = await fetch(`${URL_BASE_API}/buscar_categorias`);
       if (!resposta.ok) throw new Error("Erro ao carregar categorias.");
       const dados = await resposta.json();
-      selectCategoriaAdicao.innerHTML =
+      selectElement.innerHTML =
         '<option value="">Selecione uma categoria</option>';
-        selectCategoriaAdicao.style.cursor = "pointer";
+      selectElement.style.cursor = "pointer";
+
       dados.categorias.forEach((categoria) => {
         const opcao = document.createElement("option");
         opcao.value = categoria.id;
         opcao.textContent = categoria.nome;
-        selectCategoriaAdicao.appendChild(opcao);
+        // Se for edição, marca a categoria selecionada
+        if (categoria.nome === categoriaItem) {
+          opcao.selected = true;
+        }
+        selectElement.appendChild(opcao);
       });
     } catch (erro) {
-      mostrarToast("Erro ao carregar categorias", "error");
+      mostrarToast(erro.message, "error");
+      selectElement.innerHTML = '<option value="">Erro ao carregar</option>';
     }
   }
 
-  async function popularCategoriasParaModal(categoriaItem) {
-    selectCategoriaEdicao.innerHTML = '<option value="">Carregando...</option>';
-    try {
-      const resposta = await fetch(`${URL_BASE_API}/buscar_categorias`);
-      if (!resposta.ok)
-        throw new Error("Erro ao carregar categorias para o modal.");
-      const dados = await resposta.json();
-      selectCategoriaEdicao.innerHTML =
-        '<option value="">Selecione uma categoria</option>';
-      selectCategoriaEdicao.style.cursor = "pointer";
-      dados.categorias.forEach((categoria) => {
-        const opcao = document.createElement("option");
-        opcao.value = categoria.id;
-        opcao.textContent = categoria.nome;
-        if (categoriaItem?.nome === categoria.nome) {
-          opcao.selected = true;
-        }
-        selectCategoriaEdicao.appendChild(opcao);
-      });
-    } catch (erro) {
-      mostrarToast("Erro ao carregar categorias para edição", "error");
-    }
-  }
 
   async function buscarEExibirDespesas() {
     mostrarCarregamento();
     try {
       const resposta = await fetch(`${URL_BASE_API}/buscar_despesas`);
-      if (!resposta.ok) throw new Error("Erro ao buscar despesas.");
+      if (!resposta.ok) {
+        const erroData = await resposta.json().catch(() => ({
+          message: "Erro desconhecido ao buscar despesas.",
+        }));
+        throw new Error(erroData.message);
+      }
       const dados = await resposta.json();
       renderizarTabelaDespesas(dados.despesas);
     } catch (erro) {
@@ -152,180 +106,195 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderizarTabelaDespesas(despesas) {
     corpoTabelaDespesas.innerHTML = "";
     if (despesas.length === 0) {
-      corpoTabelaDespesas.innerHTML =
-        '<tr><td colspan="8">Nenhuma despesa cadastrada.</td></tr>';
+      corpoTabelaDespesas.innerHTML = `<tr><td colspan="7" style="text-align:center;">Nenhuma despesa cadastrada.</td></tr>`;
       return;
     }
-    despesas.forEach((despesa) => {
-      const linha = corpoTabelaDespesas.insertRow();
-      linha.insertCell(0).textContent = despesa.id;
-      linha.insertCell(1).textContent = despesa.nome_despesa;
-      linha.insertCell(2).textContent = new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      }).format(despesa.valor);
-      linha.insertCell(3).textContent = despesa.data_despesa
-        ? new Date(despesa.data_despesa).toLocaleDateString("pt-BR")
-        : "N/A";
-      linha.insertCell(4).textContent = despesa.data_vencimento_mensal
-        ? new Date(despesa.data_vencimento_mensal).toLocaleDateString("pt-BR")
-        : "N/A";
-      linha.insertCell(5).textContent = despesa.categoria
-        ? despesa.categoria.nome
-        : "N/A";
-      const celulaAcoes = linha.insertCell(6);
-      celulaAcoes.classList.add("table-actions");
-      const botaoEditar = document.createElement("button");
-      botaoEditar.innerHTML = '<i class="fas fa-edit"></i>';
-      botaoEditar.classList.add("btn-edit");
-      botaoEditar.title = "Editar Despesa";
-      botaoEditar.addEventListener("click", (e) => {
-        e.stopPropagation();
-        abrirModalEdicao(despesa);
+    despesas
+      .sort((a, b) => b.id - a.id)
+      .forEach((despesa) => {
+        const linha = corpoTabelaDespesas.insertRow();
+        linha.insertCell(0).textContent = despesa.id;
+        linha.insertCell(1).textContent = despesa.nome_despesa;
+        linha.cells[1].classList.add("expense-name");
+        linha.insertCell(2).textContent = new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }).format(despesa.valor);
+        linha.insertCell(3).textContent = despesa.data_despesa
+          ? new Date(despesa.data_despesa).toLocaleDateString("pt-BR", {
+              timeZone: "UTC",
+            })
+          : "N/A";
+        linha.insertCell(4).textContent = despesa.data_vencimento_mensal
+          ? new Date(despesa.data_vencimento_mensal).toLocaleDateString(
+              "pt-BR",
+              { timeZone: "UTC" }
+            )
+          : "N/A";
+
+        const categoriaCell = linha.insertCell(5);
+        if (despesa.categoria) {
+          const tag = document.createElement("span");
+          tag.className = "category-tag";
+          tag.textContent = despesa.categoria.nome;
+          categoriaCell.appendChild(tag);
+        } else {
+          categoriaCell.textContent = "N/A";
+        }
+
+        const celulaAcoes = linha.insertCell(6);
+        celulaAcoes.classList.add("table-actions");
+
+        const botaoEditar = document.createElement("button");
+        botaoEditar.innerHTML = '<i class="fas fa-pencil-alt"></i>';
+        botaoEditar.classList.add("btn-edit");
+        botaoEditar.title = "Editar Despesa";
+        botaoEditar.addEventListener("click", () => abrirModalEdicao(despesa));
+        celulaAcoes.appendChild(botaoEditar);
+
+        const botaoExcluir = document.createElement("button");
+        botaoExcluir.innerHTML = '<i class="fas fa-trash-alt"></i>';
+        botaoExcluir.classList.add("btn-delete");
+        botaoExcluir.title = "Excluir Despesa";
+        botaoExcluir.addEventListener("click", () =>
+          excluirDespesa(despesa.id)
+        );
+        celulaAcoes.appendChild(botaoExcluir);
       });
-      celulaAcoes.appendChild(botaoEditar);
-      const botaoExcluir = document.createElement("button");
-      botaoExcluir.innerHTML = '<i class="fas fa-trash"></i>';
-      botaoExcluir.classList.add("btn-delete");
-      botaoExcluir.title = "Excluir Despesa";
-      botaoExcluir.addEventListener("click", (e) => {
-        e.stopPropagation();
-        excluirDespesa(despesa.id);
-      });
-      celulaAcoes.appendChild(botaoExcluir);
-    });
   }
 
-  async function excluirDespesa(idDespesa) {
-    if (!confirm(`Tem certeza que deseja excluir a despesa ID ${idDespesa}?`))
-      return;
-    try {
-      const resposta = await fetch(`${URL_BASE_API}/deletar_despesa`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ despesa_id: idDespesa }),
-      });
-      if (resposta.status === 204) {
-        mostrarToast("Despesa excluída com sucesso!");
-        buscarEExibirDespesas();
-      } else {
-        const dadosErro = await resposta.json();
-        throw new Error(dadosErro.message || "Erro ao excluir despesa.");
-      }
-    } catch (erro) {
-      mostrarToast("Erro ao excluir despesa: " + erro.message, "error");
-    }
-  }
-
-  async function adicionarDespesa(evento) {
+  async function salvarDespesa(evento) {
     evento.preventDefault();
-    const dadosFormulario = new FormData(formularioAdicionarDespesa);
-    const dadosDespesa = {};
-    for (const [chave, valor] of dadosFormulario.entries()) {
-      dadosDespesa[chave] = valor;
+    const id = expenseIdInput.value;
+    const isEditing = !!id;
+
+    const dadosDespesa = {
+      nome_despesa: nomeDespesaInput.value,
+      valor: parseFloat(valorInput.value),
+      data_despesa: dataDespesaInput.value || null,
+      data_vencimento_mensal: dataVencimentoInput.value || null,
+      categoria_id: parseInt(categoriaSelect.value),
+    };
+
+    const url = isEditing
+      ? `${URL_BASE_API}/atualizar_despesa`
+      : `${URL_BASE_API}/cadastrar_despesas`;
+    const method = isEditing ? "PUT" : "POST";
+
+    if (isEditing) {
+      dadosDespesa.despesa_id = parseInt(id);
     }
-    dadosDespesa.valor = parseFloat(dadosDespesa.valor);
-    dadosDespesa.categoria_id = parseInt(dadosDespesa.categoria_id);
-    dadosDespesa.data_despesa =
-      dadosDespesa.data_despesa === "" ? null : dadosDespesa.data_despesa;
-    dadosDespesa.data_vencimento_mensal =
-      dadosDespesa.data_vencimento_mensal === ""
-        ? null
-        : dadosDespesa.data_vencimento_mensal;
+
     try {
-      const resposta = await fetch(`${URL_BASE_API}/cadastrar_despesas`, {
-        method: "POST",
+      const resposta = await fetch(url, {
+        method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dadosDespesa),
       });
-      if (resposta.status === 201) {
-        mostrarToast("Despesa adicionada com sucesso!");
-        formularioAdicionarDespesa.reset();
-        addExpenseModal.style.display = "none";
-        containerTabelaDespesas.style.display = "block";
-        buscarEExibirDespesas();
-      } else {
-        const dadosErro = await resposta.json();
-        throw new Error(dadosErro.message || "Erro ao adicionar despesa.");
+
+      const resultado = await resposta.json();
+
+      if (!resposta.ok) {
+        throw new Error(
+          resultado.message ||
+            `Erro ao ${isEditing ? "atualizar" : "adicionar"} despesa.`
+        );
       }
+
+      mostrarToast(
+        `Despesa ${isEditing ? "atualizada" : "adicionada"} com sucesso!`
+      );
+      fecharModalPrincipal();
+      buscarEExibirDespesas();
     } catch (erro) {
-      mostrarToast("Erro ao adicionar despesa: " + erro.message, "error");
+      mostrarToast(erro.message, "error");
     }
   }
 
-  function definirDataMaximaParaDespesa() {
-    const hoje = new Date();
-    const ano = hoje.getFullYear();
-    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
-    const dia = String(hoje.getDate()).padStart(2, "0");
-    inputDataDespesaAdicao.setAttribute("max", `${ano}-${mes}-${dia}`);
+  function excluirDespesa(idDespesa) {
+    showConfirmModal(
+      `Tem certeza que deseja excluir a despesa ID ${idDespesa}?`,
+      async () => {
+        try {
+          const resposta = await fetch(`${URL_BASE_API}/deletar_despesa`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ despesa_id: idDespesa }),
+          });
+          if (resposta.ok) {
+            mostrarToast("Despesa excluída com sucesso!");
+            buscarEExibirDespesas();
+          } else {
+            const dadosErro = await resposta.json();
+            throw new Error(dadosErro.message || "Erro ao excluir despesa.");
+          }
+        } catch (erro) {
+          mostrarToast("Erro ao excluir despesa: " + erro.message, "error");
+        }
+      }
+    );
   }
 
-  async function abrirModalEdicao(despesa) {
-    inputIdDespesaEdicao.value = despesa.id;
-    inputNomeDespesaEdicao.value = despesa.nome_despesa;
-    inputValorDespesaEdicao.value = parseFloat(despesa.valor).toFixed(2);
-    inputDataDespesaEdicao.value = formatarDataParaInput(despesa.data_despesa);
-    inputDataVencimentoMensalEdicao.value = formatarDataParaInput(
+  function abrirModalAdicao() {
+    expenseForm.reset();
+    expenseIdInput.value = "";
+    modalTitle.textContent = "Adicionar Nova Despesa";
+    carregarCategorias(categoriaSelect);
+    expenseModal.classList.remove("hidden");
+  }
+
+  function abrirModalEdicao(despesa) {
+    expenseForm.reset();
+    modalTitle.textContent = "Editar Despesa";
+
+    expenseIdInput.value = despesa.id;
+    nomeDespesaInput.value = despesa.nome_despesa;
+    valorInput.value = parseFloat(despesa.valor).toFixed(2);
+    dataDespesaInput.value = formatarDataParaInput(despesa.data_despesa);
+    dataVencimentoInput.value = formatarDataParaInput(
       despesa.data_vencimento_mensal
     );
-    await popularCategoriasParaModal(despesa.categoria ?? null);
-    modalDetalhesDespesa.style.display = "flex";
+
+    carregarCategorias(categoriaSelect, despesa.categoria?.nome);
+
+    expenseModal.classList.remove("hidden");
   }
 
-  function fecharModalEdicao() {
-    modalDetalhesDespesa.style.display = "none";
-    formularioEditarDespesa.reset();
+  function fecharModalPrincipal() {
+    expenseModal.classList.add("hidden");
   }
 
-  botaoFecharModal.addEventListener("click", fecharModalEdicao);
-  botaoCancelarEdicaoDespesa.addEventListener("click", fecharModalEdicao);
-  window.addEventListener("click", (evento) => {
-    if (evento.target === modalDetalhesDespesa) fecharModalEdicao();
+  function showConfirmModal(text, callback) {
+    confirmModalText.textContent = text;
+    onConfirmCallback = callback;
+    confirmModal.classList.remove("hidden");
+  }
+
+  function hideConfirmModal() {
+    confirmModal.classList.add("hidden");
+    onConfirmCallback = null;
+  }
+
+  // --- Event Listeners ---
+  botaoAdicionarDespesa.addEventListener("click", abrirModalAdicao);
+  closeModalBtn.addEventListener("click", fecharModalPrincipal);
+  cancelBtn.addEventListener("click", fecharModalPrincipal);
+  expenseModal.addEventListener("click", (e) => {
+    if (e.target === expenseModal) fecharModalPrincipal();
   });
+  expenseForm.addEventListener("submit", salvarDespesa);
 
-  formularioEditarDespesa.addEventListener("submit", async (evento) => {
-    evento.preventDefault();
-    const dadosDespesaAtualizados = {
-      despesa_id: inputIdDespesaEdicao.value,
-      nome_despesa: inputNomeDespesaEdicao.value,
-      valor: parseFloat(inputValorDespesaEdicao.value),
-      data_despesa: inputDataDespesaEdicao.value || null,
-      data_vencimento_mensal: inputDataVencimentoMensalEdicao.value || null,
-      categoria_id: parseInt(selectCategoriaEdicao.value),
-    };
-    try {
-      const resposta = await fetch(`${URL_BASE_API}/atualizar_despesa`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dadosDespesaAtualizados),
-      });
-      if (!resposta.ok) {
-        const dadosErro = await resposta.json();
-        throw new Error(dadosErro.message || "Erro ao atualizar despesa.");
-      }
-      await resposta.json();
-      buscarEExibirDespesas();
-      fecharModalEdicao();
-      mostrarToast("Despesa atualizada com sucesso!");
-    } catch (erro) {
-      mostrarToast(`Erro ao atualizar despesa: ${erro.message}`, "error");
+  confirmOkBtn.addEventListener("click", () => {
+    if (typeof onConfirmCallback === "function") {
+      onConfirmCallback();
     }
+    hideConfirmModal();
+  });
+  confirmCancelBtn.addEventListener("click", hideConfirmModal);
+  confirmModal.addEventListener("click", (e) => {
+    if (e.target === confirmModal) hideConfirmModal();
   });
 
-  botaoAdicionarDespesa.addEventListener("click", () => {
-    // containerTabelaDespesas.style.display = "none";
-    formularioAdicionarDespesa.reset();
-    carregarCategoriasAdicao();
-  });
-
-  botaoCancelarAdicaoDespesa.addEventListener("click", () => {
-    containerFormAdicionarDespesa.style.display = "none";
-    containerTabelaDespesas.style.display = "block";
-  });
-
-  formularioAdicionarDespesa.addEventListener("submit", adicionarDespesa);
-
+  // --- Inicialização ---
   buscarEExibirDespesas();
-  definirDataMaximaParaDespesa();
 });

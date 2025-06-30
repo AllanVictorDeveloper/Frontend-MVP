@@ -4,186 +4,180 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Financeiro - Despesas</title>
-    <link rel="stylesheet" href="css/style.css" />
+    <!-- Font Awesome -->
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
     <div class="app-container">
+      <!-- Sidebar -->
       <aside class="sidebar">
         <div class="sidebar-header">
-          <div class="logo">Gerenciador de Despesas</div>
+          <i class="fas fa-wallet"></i>
+          <h1>Finanças</h1>
         </div>
         <nav class="sidebar-nav">
-          <ul>
-            <!-- <li><a href="#" class="nav-item active" data-view="visao-geral"><i class="fas fa-money-bill-wave"></i> Visão Geral</a></li> -->
-            <li>
-              <a href="#" class="nav-item active" data-view="despesas"
-                ><i class="fas fa-money-bill-wave"></i> Despesas</a
-              >
-            </li>
-            <!-- <li>
-              <a href="#" class="nav-item" data-view="categorias"
-                ><i class="fas fa-tags"></i> Categorias</a
-              >
-            </li> -->
-          </ul>
+          <a href="#" class="nav-item active">
+            <i class="fas fa-money-bill-wave"></i>
+            <span>Despesas</span>
+          </a>
         </nav>
       </aside>
 
-      <main class="main-content">
+      <!-- Main Content -->
+      <div class="main-container">
+        <!-- Header -->
         <header class="header">
-          <div class="header-title">Despesas</div>
+          <h2 class="header-title">Minhas Despesas</h2>
           <div class="user-info">
-            <span class="user-name">Bem-vindo de volta, Allan</span>
+            <span class="user-greeting">Bem-vindo, Allan</span>
             <div class="user-avatar">AV</div>
           </div>
         </header>
 
-        <section class="content-view" id="content-view">
-          <h2>Minhas despesas</h2>
-          <button
-            id="add-despesa-btn"
-            class="btn-primary"
-            style="margin-bottom: 20px"
-          >
-            Adicionar Nova Despesa
-          </button>
-
-          <!-- Modal para adicionar nova despesa -->
-          <div id="add-expense-modal" class="modal" style="display: none">
-            <div class="modal-content">
-              <span class="close-button" id="close-add-modal">&times;</span>
-              <h2>Adicionar Nova Despesa</h2>
-              <form id="add-despesa-form">
-                <label for="nome_despesa">Nome da Despesa:</label>
-                <input
-                  type="text"
-                  id="nome_despesa"
-                  name="nome_despesa"
-                  required
-                />
-
-                <label for="valor">Valor:</label>
-                <input
-                  type="number"
-                  id="valor"
-                  name="valor"
-                  step="0.01"
-                  required
-                />
-
-                <label for="data_despesa">Data da Despesa:</label>
-                <input type="date" id="data_despesa" name="data_despesa" />
-
-                <label for="data_vencimento_mensal"
-                  >Data de Vencimento Mensal:</label
-                >
-                <input
-                  type="date"
-                  id="data_vencimento_mensal"
-                  name="data_vencimento_mensal"
-                />
-
-                <label for="categoria_id">Categoria:</label>
-                <select id="categoria_id" name="categoria_id" required></select>
-
-                <div class="modal-actions">
-                  <button
-                    type="button"
-                    id="cancel-add-despesa"
-                    class="btn-secondary"
-                  >
-                    Cancelar
-                  </button>
-                  <button type="submit" class="btn-primary">
-                    Salvar Despesa
-                  </button>
-                </div>
-              </form>
-            </div>
+        <!-- Content Area -->
+        <main class="content-area">
+          <div class="content-header">
+            <h3 class="content-title">Lista de Despesas</h3>
+            <button id="add-despesa-btn" class="btn btn-primary">
+              <i class="fas fa-plus"></i>
+              Adicionar Despesa
+            </button>
           </div>
 
-          <div class="table-container" style="display: block">
-            <table>
+          <!-- Expenses Table -->
+          <div class="table-wrapper">
+            <table class="expenses-table">
               <thead>
                 <tr>
                   <th>ID</th>
                   <th>Nome da Despesa</th>
                   <th>Valor</th>
-                  <th>Data Despesa</th>
-                  <th>Vencimento Mensal</th>
+                  <th>Data</th>
+                  <th>Vencimento</th>
                   <th>Categoria</th>
-                  <!-- <th>Cadastrado Em</th> -->
-                  <th>Ações</th>
+                  <th style="text-align: right">Ações</th>
                 </tr>
               </thead>
               <tbody id="despesas-table-body">
-                <tr>
-                  <td colspan="8">Carregando despesas...</td>
-                </tr>
+                <!-- Rows will be populated by JavaScript -->
               </tbody>
             </table>
           </div>
-        </section>
-      </main>
+        </main>
+      </div>
     </div>
 
-    <!-- Modal para edição de despesas -->
-    <div id="expense-details-modal" class="modal" style="display: none">
+    <!-- Add/Edit Expense Modal -->
+    <div id="expense-modal" class="modal-overlay hidden">
       <div class="modal-content">
-        <span class="close-button">&times;</span>
-        <h2>Editar Despesa</h2>
-        <form id="edit-expense-form">
-          <input type="hidden" id="edit-expense-id" name="id" />
-
-          <label for="edit-expense-name">Nome da Despesa:</label>
-          <input
-            type="text"
-            id="edit-expense-name"
-            name="nome_despesa"
-            required
-          />
-
-          <label for="edit-expense-value">Valor:</label>
-          <input
-            type="number"
-            id="edit-expense-value"
-            name="valor"
-            step="0.01"
-            required
-          />
-
-          <label for="edit-expense-date">Data da Despesa:</label>
-          <input type="date" id="edit-expense-date" name="data_despesa" />
-
-          <label for="edit-expense-due-date">Vencimento Mensal:</label>
-          <input
-            type="date"
-            id="edit-expense-due-date"
-            name="data_vencimento_mensal"
-          />
-
-          <label for="edit-expense-category">Categoria:</label>
-          <select
-            id="edit-expense-category"
-            name="categoria_id"
-            required
-          ></select>
-
+        <div class="modal-header">
+          <h2 id="modal-title" class="modal-title">Adicionar Nova Despesa</h2>
+          <button id="close-modal-btn" class="btn-close-modal">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <form id="expense-form">
+          <input type="hidden" id="expense-id" name="id" />
+          <div class="form-group">
+            <label for="nome_despesa" class="form-label">Nome da Despesa</label>
+            <input
+              type="text"
+              id="nome_despesa"
+              name="nome_despesa"
+              required
+              class="form-input"
+            />
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="valor" class="form-label">Valor</label>
+              <input
+                type="number"
+                id="valor"
+                name="valor"
+                step="0.01"
+                required
+                placeholder="R$ 0,00"
+                class="form-input"
+              />
+            </div>
+            <div class="form-group">
+              <label for="categoria_id" class="form-label">Categoria</label>
+              <select
+                id="categoria_id"
+                name="categoria_id"
+                required
+                class="form-select"
+              >
+                <!-- Options will be populated by JavaScript -->
+              </select>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="data_despesa" class="form-label"
+                >Data da Despesa</label
+              >
+              <input
+                type="date"
+                id="data_despesa"
+                name="data_despesa"
+                class="form-input"
+              />
+            </div>
+            <div class="form-group">
+              <label for="data_vencimento_mensal" class="form-label"
+                >Data de Vencimento</label
+              >
+              <input
+                type="date"
+                id="data_vencimento_mensal"
+                name="data_vencimento_mensal"
+                class="form-input"
+              />
+            </div>
+          </div>
           <div class="modal-actions">
-            <button
-              type="button"
-              id="cancel-edit-expense"
-              class="btn-secondary"
-            >
+            <button type="button" id="cancel-btn" class="btn btn-secondary">
               Cancelar
             </button>
-            <button type="submit" class="btn-primary">Salvar alteração</button>
+            <button type="submit" class="btn btn-primary">Salvar</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="modal-overlay hidden">
+      <div class="modal-content" style="max-width: 400px">
+        <h2 class="modal-title">Confirmar Exclusão</h2>
+        <p
+          id="confirm-modal-text"
+          style="
+            margin-top: 1rem;
+            margin-bottom: 2rem;
+            color: var(--text-secondary);
+          "
+        >
+          Tem certeza que deseja excluir este item?
+        </p>
+        <div class="modal-actions">
+          <button id="confirm-cancel-btn" class="btn btn-secondary">
+            Cancelar
+          </button>
+          <button id="confirm-ok-btn" class="btn btn-danger">Excluir</button>
+        </div>
       </div>
     </div>
 
